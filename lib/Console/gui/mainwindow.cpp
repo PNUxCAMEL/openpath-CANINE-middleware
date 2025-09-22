@@ -3,7 +3,7 @@
 
 bool plot_OnOff = true;
 
-pCAMEL_SHM sharedCamel;
+extern pCAMEL_SHM sharedCamel;
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -18,8 +18,6 @@ MainWindow::MainWindow(QWidget* parent)
     // ui->LB_CAMEL_LOGO->setFixedSize(140, 30); // QLabel의 고정 크기 설정
     ui->LB_CAMEL_LOGO->setScaledContents(true);
     ui->LB_CAMEL_LOGO->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-
-    sharedCamel = new CAMEL_SHM();
 
     SetToolBar();
     setWindowTitle("CAMEL-RBQ10 Console");
@@ -44,9 +42,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(comm, &CommunicationClient::tcpDisconnected, this, &MainWindow::onTcpDisconnected);
     comm->startAutoConnect(1000); // 1초마다 연결 시도
 
-
-
-    //harness
+    // rosComm = new ROSCommunication();
 
     ui->LE_ROBOT_STATE_2->setText("DISCONNECTED");
     ui->LE_CONNECT->setStyleSheet("background-color:red");
@@ -61,7 +57,6 @@ MainWindow::MainWindow(QWidget* parent)
     // gamepad
     middleware_update_flag = false;
 
-    // TODO: ros2 comm.
     // timer setting
     udpTimer = new QTimer();
     connect(udpTimer, SIGNAL(timeout()), this, SLOT(ReferenceUpdate())); // UDP(console -> controller)
@@ -166,10 +161,9 @@ void MainWindow::ReferenceUpdate()
 
     if (middleware_update_flag)
     {
-        //TODO
-        ros_data.linearVelocityX = 0.0;
-        ros_data.linearVelocityY = 0.0;
-        ros_data.angularVelocityZ = 0.0;
+        ros_data.linearVelocityX = sharedCamel->ros2Data.baseRefVelX;
+        ros_data.linearVelocityY = sharedCamel->ros2Data.baseRefVelY;
+        ros_data.angularVelocityZ = sharedCamel->ros2Data.baseRefAngVelZ;
     }
 
     // udp joystick send //
@@ -522,6 +516,21 @@ void MainWindow::fsmDisplay()
             ui->LE_STAND->setStyleSheet("background-color:red");
             ui->LE_WALK->setStyleSheet("background-color:red");
             ui->LE_RLWALK->setStyleSheet("background-color:red");
+            if (sharedCamel->ros2Data.bNewCommand)
+            {
+                FILE_LOG(logINFO) << "[ROS2] Received ROS Command : " << sharedCamel->ros2Data.command;
+                sharedCamel->ros2Data.bNewCommand = false;
+                switch (sharedCamel->ros2Data.command)
+                {
+                case CMD_ROS_STAND:
+                    {
+                        on_BTN_GDQ_STAND_clicked();
+                        break;
+                    }
+                default:
+                    break;
+                }
+            }
             break;
         case FSM_STAND_UP:
             ui->LE_ROBOT_STATE_2->setText("STAND-UP");
@@ -655,6 +664,114 @@ void MainWindow::fsmDisplay()
             ui->LE_ROBOT_STATE_2->setText("ERROR");
             break;
         }
+    }
+
+
+    switch (sharedCamel->CAMEL_DATA_NEW.fsm_state)
+    {
+    case FSM_INITIAL:
+        if (sharedCamel->ros2Data.bNewCommand)
+        {
+            FILE_LOG(logINFO) << "[ROS2] Received ROS Command : " << sharedCamel->ros2Data.command;
+            sharedCamel->ros2Data.bNewCommand = false;
+            switch (sharedCamel->ros2Data.command)
+            {
+            case CMD_ROS_START:
+                {
+                    on_BTN_GDQ_START_clicked();
+                    break;
+                }
+            default:
+                break;
+            }
+        }
+
+        break;
+    case FSM_INITIALIZING:
+        break;
+    case FSM_EMERGENCY_STOP:
+        break;
+    case FSM_READY:
+        if (sharedCamel->ros2Data.bNewCommand)
+        {
+            FILE_LOG(logINFO) << "[ROS2] Received ROS Command : " << sharedCamel->ros2Data.command;
+            sharedCamel->ros2Data.bNewCommand = false;
+            switch (sharedCamel->ros2Data.command)
+            {
+            case CMD_ROS_STAND:
+                {
+                    on_BTN_GDQ_STAND_clicked();
+                    break;
+                }
+            default:
+                break;
+            }
+        }
+        break;
+    case FSM_STAND_UP:
+        break;
+    case FSM_SIT_DOWN:
+        break;
+    case FSM_STAND:
+        if (sharedCamel->ros2Data.bNewCommand)
+        {
+            FILE_LOG(logINFO) << "[ROS2] Received ROS Command : " << sharedCamel->ros2Data.command;
+            sharedCamel->ros2Data.bNewCommand = false;
+            switch (sharedCamel->ros2Data.command)
+            {
+            case CMD_ROS_READY:
+                {
+                    on_BTN_GDQ_READY_clicked();
+                    break;
+                }
+            case CMD_ROS_WALK:
+                {
+                    on_BTN_GDQ_WALK_clicked();
+                    break;
+                }
+            default:
+                break;
+            }
+        }
+        break;
+    case FSM_TROT_STOP:
+        break;
+    case FSM_WALK:
+        if (sharedCamel->ros2Data.bNewCommand)
+        {
+            FILE_LOG(logINFO) << "[ROS2] Received ROS Command : " << sharedCamel->ros2Data.command;
+            sharedCamel->ros2Data.bNewCommand = false;
+            switch (sharedCamel->ros2Data.command)
+            {
+            case CMD_ROS_STAND:
+                {
+                    on_BTN_GDQ_STAND_clicked();
+                    break;
+                }
+            case CMD_ROS_READY:
+                {
+                    on_BTN_GDQ_READY_clicked();
+                    break;
+                }
+            default:
+                break;
+            }
+        }
+        break;
+    case FSM_STAIR:
+        break;
+    case FSM_RLWALK:
+        break;
+    case FSM_PRONKING:
+        break;
+    case FSM_BOUNDING:
+        break;
+    case FSM_PACING:
+        break;
+    case FSM_RECOVERY:
+        break;
+    default:
+        break;
     }
 }
 

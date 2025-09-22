@@ -6,7 +6,7 @@
 
 typedef struct _CAMEL_SHM_
 {
-    bool bIsConnect;
+    bool bIsConnect = false;
     int LanComm_Mode; // TODO: mode???? connection PC; robot(3), local(1) ... etc
     int mc_ch; // TODO: last selected???
 
@@ -14,7 +14,7 @@ typedef struct _CAMEL_SHM_
 
     COMMAND_STRUCT  COMMAND;
     bool NEWCOMMAND;
-
+    ROS2_DATA ros2Data;
 }CAMEL_SHM, *pCAMEL_SHM;
 extern pCAMEL_SHM sharedCamel;
 

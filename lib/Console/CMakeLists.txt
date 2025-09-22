@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 3.21)
-project(Camel-GUI)
+project(canine_middleware)
 
 # Qt 모듈 설정
-find_package(Qt5 COMPONENTS Core Network OpenGL Gui Widgets PrintSupport REQUIRED)
+find_package(Qt5 COMPONENTS Core Network Gui Widgets PrintSupport REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(OpenGL REQUIRED)
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(canine_msgs_v2 REQUIRED)
 
 # Qt 자동 처리 설정
 set(CMAKE_AUTOUIC ON)
@@ -37,6 +40,7 @@ qt5_add_resources(RCC_FILES ${RESOURCES})
 # 소스 파일 설정
 set(SOURCES
         CommunicationClient.cpp
+        ROSCommunication.cpp
         main.cpp
         gui/mainwindow.cpp
         gui/MotorDialog.cpp
@@ -51,6 +55,7 @@ set(HEADERS
         # this code is custom widget example code.
         IndexNotation.h
         CommunicationClient.h
+        ROSCommunication.hpp
         SharedMemory.h
 )
 
@@ -70,14 +75,20 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 # 타겟 설정
-target_link_libraries(${PROJECT_NAME} PRIVATE
+target_link_libraries(${PROJECT_NAME}
         Qt5::Core
         Qt5::Network
-        Qt5::OpenGL
         Qt5::Gui
         Qt5::Widgets
         Qt5::PrintSupport
         Eigen3::Eigen
         CAMEL_SDK
-        OpenGL::GL
 )
+
+ament_target_dependencies(${PROJECT_NAME}
+        rclcpp
+        geometry_msgs
+        canine_msgs_v2
+)
+
+ament_package()

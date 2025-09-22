@@ -108,6 +108,39 @@ typedef struct _ROBOT_RAW_DATA_
 
 } ROBOT_RAW_DATA;
 
+typedef struct _MIDDLEWARE_DATA_
+{
+    int FSMState;
+    double localTime;
+
+    struct
+    {
+        Eigen::Vector3d baseVelocity;
+        Eigen::Vector3d baseAngularVelocity;
+    } body;
+
+    struct
+    {
+        Eigen::Vector3d basePosition;
+        Eigen::Vector3d baseVelocity;
+        Eigen::Vector3d baseAngularVelocity;
+        Eigen::Vector3d rpy; // body orientation[rpy]
+        Eigen::Vector4d quat; // body orientation[quat]
+    } global;
+
+
+} MIDDLEWARE_DATA;
+
+typedef struct _ROS2_DATA_
+{
+    int command = 0;
+    int prevCommand = 0;
+    bool bNewCommand = false;
+    float baseRefVelX;
+    float baseRefVelY;
+    float baseRefAngVelZ;
+} ROS2_DATA;
+
 typedef struct _COMMAND_
 {
     int     COMMAND_TARGET = 0;
@@ -358,6 +391,8 @@ typedef struct _LAN_STRUCT_CAMEL2GUI_
     ROBOT_RAW_DATA rawData;
     double desiredTorque[MAX_JOINT];
     double desiredPosition[MAX_JOINT];
+
+    MIDDLEWARE_DATA middlewareData;
 } LAN_CAMEL2GUI, *pLAN_CAMEL2GUI;
 
 #endif //RBCANINE_SHAREDMEMORY_HPP

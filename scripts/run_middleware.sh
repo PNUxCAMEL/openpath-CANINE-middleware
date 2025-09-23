@@ -46,4 +46,5 @@ fi
 cd ${BUILD_DIR}
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make
+cd "lib/Console"
 ./canine_middleware

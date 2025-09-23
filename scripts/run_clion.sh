@@ -32,5 +32,4 @@ fi
 
 # CLion 실행
 echo "Launching CLion..."
-cd "${PARENT_DIR}"
-clion &
+clion "${PARENT_DIR}"

@@ -231,6 +231,7 @@ typedef struct _CAMEL_SHM_DATA_
         Eigen::Vector2d baseDesiredZeroMomentPoint;
         Eigen::Vector2d baseDesiredCP;
         Eigen::Vector2d baseFutureCapturePoint;
+        Eigen::Vector2d footIntersection;
         double baseHeight;
     } global;
 
@@ -375,6 +376,8 @@ typedef struct _CAMEL_SHM_DATA_
 typedef struct _LAN_STRUCT_CAMEL2GUI_
 {
     FSM fsm_state;
+    int gait_state;
+    bool leg_contact[MAX_LEG];
     bool bGDMCommand;
     bool bConsoleCommand;
     bool bVisionAvailable;

@@ -20,7 +20,8 @@ enum GAIT_TYPE
     PRONKING,
     BOUNDING,
     PACING,
-    TROT_VISION
+    TROT_VISION,
+    RL_WALK
 };
 
 enum GAIT_COMMAND

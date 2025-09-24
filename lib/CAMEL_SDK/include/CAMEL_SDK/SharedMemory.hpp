@@ -325,7 +325,6 @@ typedef struct _CAMEL_SHM_DATA_
     /// divergence
     bool bIsDiv;
 
-    bool bCompliantMode;
     bool bGDMCommand;
     bool bConsoleCommand;
     bool bTurboMode;

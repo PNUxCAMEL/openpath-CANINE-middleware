@@ -471,8 +471,8 @@
          </font>
         </property>
         <property name="text">
-         <string>RL
-WALK</string>
+         <string> Auto
+Nav</string>
         </property>
        </widget>
        <widget class="QLineEdit" name="LE_RLWALK">

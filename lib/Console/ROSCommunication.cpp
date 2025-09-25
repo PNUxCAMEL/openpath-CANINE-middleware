@@ -29,32 +29,32 @@ void ROSCommunication::publishStates()
 
 void ROSCommunication::package_canine_state_msg(canine_msgs_v2::msg::CANINEState& msg)
 {
-    msg.local_time = sharedCamel->CAMEL_DATA_NEW.middlewareData.localTime;
-    msg.fsm_state = sharedCamel->CAMEL_DATA_NEW.middlewareData.FSMState;
-
-    msg.global_base_position.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition.x();
-    msg.global_base_position.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition.y();
-    msg.global_base_position.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition.z();
-    msg.global_base_velocity.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity.x();
-    msg.global_base_velocity.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity.y();
-    msg.global_base_velocity.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity.z();
-    msg.global_base_euler_angle.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy.x();
-    msg.global_base_euler_angle.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy.y();
-    msg.global_base_euler_angle.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy.z();
-    msg.global_base_quaternion.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[1];
-    msg.global_base_quaternion.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[2];
-    msg.global_base_quaternion.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[3];
-    msg.global_base_quaternion.w = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[0];
-    msg.global_base_angular_velocity.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseAngularVelocity.x();
-    msg.global_base_angular_velocity.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseAngularVelocity.y();
-    msg.global_base_angular_velocity.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseAngularVelocity.z();
-
-    msg.body_base_velocity.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseVelocity.x();
-    msg.body_base_velocity.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseVelocity.y();
-    msg.body_base_velocity.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseVelocity.z();
-    msg.body_base_angular_velocity.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity.x();
-    msg.body_base_angular_velocity.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity.y();
-    msg.body_base_angular_velocity.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity.z();
+    // msg.local_time = sharedCamel->CAMEL_DATA_NEW.middlewareData.localTime;
+    // msg.fsm_state = sharedCamel->CAMEL_DATA_NEW.middlewareData.FSMState;
+    //
+    // msg.global_base_position.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition.x();
+    // msg.global_base_position.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition.y();
+    // msg.global_base_position.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition.z();
+    // msg.global_base_velocity.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity.x();
+    // msg.global_base_velocity.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity.y();
+    // msg.global_base_velocity.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity.z();
+    // msg.global_base_euler_angle.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy.x();
+    // msg.global_base_euler_angle.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy.y();
+    // msg.global_base_euler_angle.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy.z();
+    // msg.global_base_quaternion.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[1];
+    // msg.global_base_quaternion.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[2];
+    // msg.global_base_quaternion.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[3];
+    // msg.global_base_quaternion.w = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[0];
+    // msg.global_base_angular_velocity.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseAngularVelocity.x();
+    // msg.global_base_angular_velocity.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseAngularVelocity.y();
+    // msg.global_base_angular_velocity.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseAngularVelocity.z();
+    //
+    // msg.body_base_velocity.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseVelocity.x();
+    // msg.body_base_velocity.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseVelocity.y();
+    // msg.body_base_velocity.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseVelocity.z();
+    // msg.body_base_angular_velocity.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity.x();
+    // msg.body_base_angular_velocity.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity.y();
+    // msg.body_base_angular_velocity.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity.z();
 }
 
 void ROSCommunication::topic_callback_canine_command(const canine_msgs_v2::msg::CANINECommand::SharedPtr msg) const

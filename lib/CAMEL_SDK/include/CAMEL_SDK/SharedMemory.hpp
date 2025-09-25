@@ -75,6 +75,7 @@ typedef struct _COMMAND_STRUCT_
     int	    USER_PARA_INT[MAX_COMMAND_DATA] = {0,};
     float   USER_PARA_FLOAT[MAX_COMMAND_DATA] = {0.0f,};
     double  USER_PARA_DOUBLE[MAX_COMMAND_DATA] = {0.0,};
+    double  DWA_GUI_LOCAL_GOAL[2] = {0.0,};
 } COMMAND_STRUCT, *pCOMMAND_STRUCT;
 
 typedef struct _ROBOT_RAW_DATA_
@@ -370,18 +371,87 @@ typedef struct _CAMEL_SHM_DATA_
 
 } CAMEL_SHM_CORE, *pCAMEL_SHM_DATA;
 
+struct GlobalRobotState
+{
+    Eigen::Vector3d basePosition;
+    Eigen::Vector3d baseVelocity;
+    Eigen::Vector3d baseDesiredPosition;
+    Eigen::Vector3d baseDesiredVelocity;
+    Eigen::Vector3d baseDesiredAcceleration;
+    Eigen::Vector3d baseAngularVelocity;
+    Eigen::Vector3d baseDesiredAngularVelocity;
+    Eigen::Vector3d baseAcceleration; // body acceleration
+    Eigen::Vector3d groundCenter;
+    Eigen::Vector2d baseCapturePoint;
+    Eigen::Vector2d baseZeroMomentPoint;
+    Eigen::Vector2d baseDesiredZeroMomentPoint;
+    Eigen::Vector2d baseDesiredCP;
+    Eigen::Vector2d baseFutureCapturePoint;
+    double baseHeight;
+};
+
+struct GlobalRobotOrientation
+{
+    Eigen::Vector3d rpy; // body orientation[rpy]
+    Eigen::Vector4d quat; // body orientation[quat]
+    Eigen::Vector3d desiredRpy; // body desired orientation[rpy]
+    Eigen::Vector4d desiredQuat; // body desired orientation[quat]
+};
+
+enum HARNESS_STATE
+{
+    HARNESS_NO_ACT,
+    HARNESS_STANDBY,
+    HARNESS_STOP,
+    HARNESS_EMERGENCY_STOP,
+    HARNESS_WALK,
+    HARNESS_GO_STRAIGHT,
+    HARNESS_GO_RIGHT,
+    HARNESS_GO_LEFT,
+    HARNESS_TURN_RIGHT,
+    HARNESS_TURN_LEFT,
+    HARNESS_ERROR,
+    HARNESS_STAND_UP,
+    HARNESS_SIT_DOWN
+};
+
+struct lidarPoint
+{
+    float x;
+    float y;
+};
+
+struct Point2D {
+    float x;
+    float y;
+};
+
 // ===================================================
 // LAN Structure
 typedef struct _LAN_STRUCT_CAMEL2GUI_
 {
+    GlobalRobotState global;
+    GlobalRobotOrientation orientation;
     FSM fsm_state;
+    int compliant_state;
+    bool bCompliantMode;
     bool bGDMCommand;
     bool bConsoleCommand;
+    bool bHarnessConnected;
     bool bVisionAvailable;
     bool bTurboMode;
-    bool bVisionMode;
+    bool bDWAMode;
     Eigen::Vector3d cmd_vel;
     Eigen::Vector3d actual_vel;
+    /// you can add more custom data to send to GUI by TCP
+    /// harness
+    int harnessHandle;
+    double harnessEncoder;
+    int harnessBT;
+
+    HARNESS_STATE harnessState;
+    bool isHarnessMode;
+    float handleGain;
 
     bool isVisionUdpConnected;
     bool isROSConnected;
@@ -392,7 +462,20 @@ typedef struct _LAN_STRUCT_CAMEL2GUI_
     double desiredTorque[MAX_JOINT];
     double desiredPosition[MAX_JOINT];
 
-    MIDDLEWARE_DATA middlewareData;
+    // DWA
+    double localGoalPosition[2];
+    double globalGoalPosition[2];
+
+    lidarPoint lidar2DPoints[1500];
+    int lidarSize;
+
+    // A star
+    Point2D waypoints[500];
+    int numWaypoints;
+
+    // Patrol mode
+    Point2D patrolGoals[20];
+    int numPatrolGoals;
 } LAN_CAMEL2GUI, *pLAN_CAMEL2GUI;
 
 #endif //RBCANINE_SHAREDMEMORY_HPP

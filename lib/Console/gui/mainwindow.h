@@ -54,7 +54,6 @@ private Q_SLOTS:
     void onTcpConnected(QString ip);
     void onTcpDisconnected(QString ip, QString reason);
     void DisplayUpdate();
-    void ReferenceUpdate();
     void scaleScreen();
     void SetToolBar();
     void EmergencyStop();

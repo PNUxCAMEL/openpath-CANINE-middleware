@@ -6,6 +6,7 @@ class Command(Enum):
     READY = 2
     STAND = 3
     WALK = 4
+    DWA = 5
 
 class CanineFSM(Enum):
     INITIAL = 0

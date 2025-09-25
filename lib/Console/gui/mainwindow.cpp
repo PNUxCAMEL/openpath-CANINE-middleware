@@ -57,11 +57,6 @@ MainWindow::MainWindow(QWidget* parent)
     // gamepad
     middleware_update_flag = false;
 
-    // timer setting
-    udpTimer = new QTimer();
-    connect(udpTimer, SIGNAL(timeout()), this, SLOT(ReferenceUpdate())); // UDP(console -> controller)
-    udpTimer->start(1);
-
 #ifdef BUILD_STANDALONE
     scaleScreen();
 #endif
@@ -155,44 +150,9 @@ MainWindow::~MainWindow()
     ui = NULL;
 }
 
-void MainWindow::ReferenceUpdate()
-{
-    LAN_MIDDLEWARE ros_data;
-
-    if (middleware_update_flag)
-    {
-        ros_data.linearVelocityX = sharedCamel->ros2Data.baseRefVelX;
-        ros_data.linearVelocityY = sharedCamel->ros2Data.baseRefVelY;
-        ros_data.angularVelocityZ = sharedCamel->ros2Data.baseRefAngVelZ;
-    }
-
-    // udp joystick send //
-    static int cnt;
-    cnt++;
-    if (cnt >= 50 && sockfd >= 0)
-    {
-        QByteArray SendData((char*)&ros_data, sizeof(LAN_MIDDLEWARE)); // 복사본 생성
-
-        char header[2];
-        header[0] = 0xFF;
-        header[1] = 0xFE;
-
-        char tail[2];
-        tail[0] = 0x00;
-        tail[1] = 0x01;
-
-        SendData.prepend(header, 2);
-        SendData.append(tail, 2);
-
-        ::sendto(sockfd, SendData, SendData.size(), MSG_CONFIRM, (const struct sockaddr*)&servaddr, sizeof(servaddr));
-        cnt = 0;
-    }
-}
-
 void MainWindow::DisplayUpdate()
 {
     tcpSend(); // TCP(console -> controller, command)
-    ReferenceUpdate(); // UDP(console -> controller, ref vel.)
     // toolbar ==============================================================================
     ConnectionStatusDisplay();
     batteryDataDisplay();
@@ -338,11 +298,18 @@ void MainWindow::on_BTN_GDQ_WALK_clicked()
 
 void MainWindow::on_BTN_GDQ_RLWALK_clicked()
 {
+    // Temp use for DWA
     COMMAND_STRUCT cmd;
-    cmd.USER_COMMAND = CMD_CTRL_RLWALK;
+    cmd.USER_COMMAND = CMD_CTRL_DWA_MODE;
     cmd.COMMAND_TARGET = CAMEL_CTRL;
     sharedCamel->COMMAND = cmd;
     sharedCamel->NEWCOMMAND = true;
+
+    // COMMAND_STRUCT cmd;
+    // cmd.USER_COMMAND = CMD_CTRL_RLWALK;
+    // cmd.COMMAND_TARGET = CAMEL_CTRL;
+    // sharedCamel->COMMAND = cmd;
+    // sharedCamel->NEWCOMMAND = true;
 }
 
 void MainWindow::tcpSend()
@@ -367,6 +334,7 @@ void MainWindow::ConnectionStatusDisplay()
     static bool bPrevVisionMode = false;
     static bool bPrevGDMControlled = false;
     static bool bPrevConsoleControlled = false;
+    static bool bPrev_LE_DWA = false;
     // LAN 및 CAMEL 연결 상태 확인
     bool bRobotConnected = sharedCamel->bIsConnect;
 
@@ -402,6 +370,7 @@ void MainWindow::ConnectionStatusDisplay()
         updateStatusLED(sharedCamel->CAMEL_DATA_NEW.isROSConnected, bPrevROSConnected, ui->LE_VISION_ROS);
         updateStatusLED(sharedCamel->CAMEL_DATA_NEW.bConsoleCommand, bPrevConsoleControlled, ui->LE_CONSOLE_CMD);
         updateStatusLED(sharedCamel->CAMEL_DATA_NEW.bGDMCommand, bPrevGDMControlled, ui->LE_GDM_CMD);
+        updateStatusLED(sharedCamel->CAMEL_DATA_NEW.bDWAMode, bPrev_LE_DWA, ui->LE_RLWALK);
     }
 }
 
@@ -592,19 +561,6 @@ void MainWindow::fsmDisplay()
             ui->LE_WALK->setStyleSheet("background-color:lightgreen");
             ui->LE_RLWALK->setStyleSheet("background-color:red");
             break;
-        case FSM_STAIR:
-            ui->LE_ROBOT_STATE_2->setText("STAIR");
-            ui->BTN_GDQ_START->setDisabled(true);
-            ui->BTN_GDQ_STAND->setEnabled(true);
-            ui->BTN_GDQ_READY->setEnabled(true);
-            ui->BTN_GDQ_WALK->setEnabled(true);
-            ui->BTN_GDQ_RLWALK->setEnabled(true);
-
-            ui->LE_SIT->setStyleSheet("background-color:red");
-            ui->LE_STAND->setStyleSheet("background-color:red");
-            ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
-            break;
         case FSM_RLWALK:
             ui->LE_ROBOT_STATE_2->setText("RL WALK");
             ui->BTN_GDQ_START->setDisabled(true);
@@ -618,34 +574,8 @@ void MainWindow::fsmDisplay()
             ui->LE_WALK->setStyleSheet("background-color:red");
             ui->LE_RLWALK->setStyleSheet("background-color:lightgreen");
             break;
-        case FSM_PRONKING:
-            ui->LE_ROBOT_STATE_2->setText("PRONKING");
-            ui->BTN_GDQ_START->setDisabled(true);
-            ui->BTN_GDQ_STAND->setEnabled(true);
-            ui->BTN_GDQ_READY->setEnabled(true);
-            ui->BTN_GDQ_WALK->setEnabled(true);
-            ui->BTN_GDQ_RLWALK->setDisabled(true);
-
-            ui->LE_SIT->setStyleSheet("background-color:red");
-            ui->LE_STAND->setStyleSheet("background-color:red");
-            ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
-            break;
-        case FSM_BOUNDING:
-            ui->LE_ROBOT_STATE_2->setText("BOUNDING");
-            ui->BTN_GDQ_START->setDisabled(true);
-            ui->BTN_GDQ_STAND->setEnabled(true);
-            ui->BTN_GDQ_READY->setEnabled(true);
-            ui->BTN_GDQ_WALK->setEnabled(true);
-            ui->BTN_GDQ_RLWALK->setDisabled(true);
-
-            ui->LE_SIT->setStyleSheet("background-color:red");
-            ui->LE_STAND->setStyleSheet("background-color:red");
-            ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
-            break;
-        case FSM_PACING:
-            ui->LE_ROBOT_STATE_2->setText("PACING");
+        case FSM_DWA:
+            ui->LE_ROBOT_STATE_2->setText("DWA");
             ui->BTN_GDQ_START->setDisabled(true);
             ui->BTN_GDQ_STAND->setEnabled(true);
             ui->BTN_GDQ_READY->setEnabled(true);
@@ -753,20 +683,17 @@ void MainWindow::fsmDisplay()
                     on_BTN_GDQ_READY_clicked();
                     break;
                 }
+            case CMD_ROS_DWA:
+                {
+                    on_BTN_GDQ_RLWALK_clicked();
+                    break;
+                }
             default:
                 break;
             }
         }
         break;
-    case FSM_STAIR:
-        break;
     case FSM_RLWALK:
-        break;
-    case FSM_PRONKING:
-        break;
-    case FSM_BOUNDING:
-        break;
-    case FSM_PACING:
         break;
     case FSM_RECOVERY:
         break;

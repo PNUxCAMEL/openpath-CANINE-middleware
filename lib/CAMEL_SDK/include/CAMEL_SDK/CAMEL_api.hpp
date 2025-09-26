@@ -7,12 +7,9 @@
 
 #include "ENumClasses.hpp"
 #include "SharedMemory.hpp"
-#include "RBThread.h"
+#include "Thread.h"
 #include "Log.hpp"
-#include "DataAnalysis.hpp"
 
-// #define AMBER
-// #define KETI
 #define HAETAE
 
 #define CPU_NO_DAEMON           2

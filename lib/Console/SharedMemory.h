@@ -7,8 +7,6 @@
 typedef struct _CAMEL_SHM_
 {
     bool bIsConnect = false;
-    int LanComm_Mode; // TODO: mode???? connection PC; robot(3), local(1) ... etc
-    int mc_ch; // TODO: last selected???
 
     LAN_CAMEL2GUI CAMEL_DATA_NEW;
 

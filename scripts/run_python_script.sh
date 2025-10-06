@@ -3,15 +3,16 @@
 # 현재 스크립트의 디렉토리 경로
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PARENT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-PYTHON_SCRIPT_DIR="$(cd "${PARENT_DIR}/python_scripts/" && pwd)"
-HUMBLE_SETUP="/opt/ros/humble/setup.bash"
+JAZZY_SETUP="/opt/ros/jazzy/setup.bash"
 SCRIPT_SETUP="${PARENT_DIR}/ros_pkg/install/setup.bash"
-# ROS 2 Humble 확인
-if [ -f "$HUMBLE_SETUP" ]; then
-    echo "ROS 2 Humble found. Sourcing $HUMBLE_SETUP"
-    source "$HUMBLE_SETUP"
+PYTHON_SCRIPT_DIR="$(cd "${PARENT_DIR}/python_scripts/" && pwd)"
+
+# ROS 2 jazzy 확인
+if [ -f "$JAZZY_SETUP" ]; then
+    echo "ROS 2 Jazzy found. Sourcing $JAZZY_SETUP"
+    source "$JAZZY_SETUP"
 else
-    echo "Error: Neither ROS 2 Humble nor Foxy found in /opt/ros."
+    echo "Error: ROS 2 Jazzy is not found in /opt/ros."
     exit 1
 fi
 

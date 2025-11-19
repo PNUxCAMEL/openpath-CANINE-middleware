@@ -86,6 +86,7 @@ typedef struct _ROBOT_RAW_DATA_
         double Kp[MAX_JOINT];
         double Kd[MAX_JOINT];
         int error_code[MAX_JOINT];
+        bool status[MAX_JOINT];
     } motor;
 
     struct
@@ -143,6 +144,7 @@ typedef struct _ROS2_DATA_
 typedef struct _LAN_STRUCT_CAMEL2GUI_
 {
     FSM fsm_state;
+    int compliant_state;
     int gait_state;
     bool leg_contact[MAX_LEG];
     bool bGDMCommand;

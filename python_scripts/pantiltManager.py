@@ -3,15 +3,16 @@ import numpy as np
 from dynamixel_sdk import *
 
 DXL_MOVING_STATUS_THRESHOLD = 20
+TORQUE_DISABLE = 0
+TORQUE_ENABLE = 1
+ADDR_TORQUE_ENABLE = 64
+ADDR_GOAL_POSITION = 116
+ADDR_HOMING_OFFSET = 20
+ADDR_PRESENT_POSITION = 132
 
 class pantiltManager():
     def __init__(self, SharedMemoryManager):
         self.shm = SharedMemoryManager
-        
-        # ------------------------------
-        # Dynamixel 기본 설정
-        # ------------------------------
-
         self.position_raw = np.zeros(2)
         self.position_offset_deg = np.zeros(2)
         self.current_deg = np.zeros(2)
@@ -26,7 +27,6 @@ class pantiltManager():
         DEVICENAME = '/dev/ttyUSB0'
         PROTOCOL_VERSION = 2.0
         
-        # 각도 제한 (절대 각도 기준, deg)
         self.LIMITS = {
             self.DXL_YAW:   {"min_deg": 130.0, "max_deg": 230.0},
             self.DXL_PITCH: {"min_deg": 150.0, "max_deg": 210.0},
@@ -65,8 +65,6 @@ class pantiltManager():
             print(f"[PANTILT MOTOR] closePort failed: {e}")
 
     def enable_torque(self):
-        TORQUE_ENABLE = 1
-        ADDR_TORQUE_ENABLE = 64
         for dxl_id in self.DXL_IDS:
             try:
                 self.packetHandler.write1ByteTxRx(self.portHandler, dxl_id, ADDR_TORQUE_ENABLE, TORQUE_ENABLE)
@@ -74,16 +72,13 @@ class pantiltManager():
                 print(f"[PANTILT MOTOR] Torque enable failed for ID {dxl_id}: {e}")
 
     def disable_torque(self):
-        TORQUE_ENABLE = 0
-        ADDR_TORQUE_ENABLE = 64
         for dxl_id in self.DXL_IDS:
             try:
-                self.packetHandler.write1ByteTxRx(self.portHandler, dxl_id, ADDR_TORQUE_ENABLE, TORQUE_ENABLE)
+                self.packetHandler.write1ByteTxRx(self.portHandler, dxl_id, ADDR_TORQUE_ENABLE, TORQUE_DISABLE)
             except Exception as e:
                 print(f"[PANTILT MOTOR] Torque disable failed for ID {dxl_id}: {e}")
     
     def move_with_limit(self, dxl_id, target_deg):
-        ADDR_GOAL_POSITION = 116
         min_d = self.LIMITS[dxl_id]["min_deg"]
         max_d = self.LIMITS[dxl_id]["max_deg"]
 
@@ -106,13 +101,18 @@ class pantiltManager():
         return clamped
     
     def read_initial_position(self):
-        ADDR_HOMING_OFFSET = 20
-        ADDR_PRESENT_POSITION = 132
         for dxl_id in self.DXL_IDS:
             dxl_present_position, _, _ = self.packetHandler.read4ByteTxRx(self.portHandler, dxl_id, ADDR_PRESENT_POSITION)
             dxl_homing_offset, _, _ = self.packetHandler.read4ByteTxRx(self.portHandler, dxl_id, ADDR_HOMING_OFFSET)
             self.position_raw[dxl_id] = self.pos_to_deg(dxl_present_position)   # 절대 각도(오프셋 포함)
             self.position_offset_deg[dxl_id] = self.pos_to_deg(dxl_homing_offset)
+            self.current_deg[dxl_id] = self.position_raw[dxl_id] - self.position_offset_deg[dxl_id]
+            print(f"[ID:{dxl_id}] Initial Angle: {self.current_deg[dxl_id]:.2f}°")
+
+    def read_position(self):
+        for dxl_id in self.DXL_IDS:
+            dxl_present_position, _, _ = self.packetHandler.read4ByteTxRx(self.portHandler, dxl_id, ADDR_PRESENT_POSITION)
+            self.position_raw[dxl_id] = self.pos_to_deg(dxl_present_position)   # 절대 각도(오프셋 포함)
             self.current_deg[dxl_id] = self.position_raw[dxl_id] - self.position_offset_deg[dxl_id]
             print(f"[ID:{dxl_id}] Current Angle: {self.current_deg[dxl_id]:.2f}°")
 

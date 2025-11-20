@@ -1,15 +1,17 @@
 import os
 import pyzed.sl as sl
 
-
+CAMERA_FPS = 30
 
 class zedManager:
     def __init__(self,SharedMemoryManager):
         self.shm = SharedMemoryManager
-        self.camera_fps = 30
+        self.camera_fps = CAMERA_FPS
         self.zed = sl.Camera()
         self.image_left = sl.Mat()
         self.image_right = sl.Mat()
+        self.save_dir = "./zed_image"
+        os.makedirs(self.save_dir, exist_ok=True)
         self.open_camera()
 
     def __del__(self):
@@ -33,15 +35,19 @@ class zedManager:
         self.zed.close()
 
     def get_image(self):
+        print("get image1")
         runtime_parameters = sl.RuntimeParameters()
         if self.zed.grab(runtime_parameters) == sl.ERROR_CODE.SUCCESS:
             self.zed.retrieve_image(self.image_left, sl.VIEW.LEFT)
             self.zed.retrieve_image(self.image_right, sl.VIEW.LEFT)
             self.time_stamp = self.zed.get_timestamp(sl.TIME_REFERENCE.CURRENT)
+            self.shm.left_image[0] = self.image_left
+            self.shm.right_image[0] = self.image_right
+        print("get image2")
 
-    def save_image(self, save_path):
-        filename = os.path.join(save_path, f"zed_image_{self.time_stamp:05d}_left.png")
-        self.image_left.write(filename)
-        filename = os.path.join(save_path, f"zed_image_{self.time_stamp:05d}_right.png")
-        self.image_right.write(filename)
+    def save_image(self):
+        filename = os.path.join(self.save_dir, f"zed_image_left.png")
+        self.shm.left_image[0].write(filename)
+        filename = os.path.join(self.save_dir, f"zed_image_right.png")
+        self.shm.right_image[0].write(filename)
         print("Saved images")

@@ -21,3 +21,9 @@ class SharedMemoryManager:
         self.cmd.command = 0
         self.cmd.reference_base_velocity = [0.0, 0.0]
         self.cmd.reference_base_yaw_velocity = 0.0
+
+        self.pantilt_position = np.zeros(2)
+        self.pantilt_goal_position = np.zeros(2)
+
+        self.left_image = {}
+        self.right_image = {}

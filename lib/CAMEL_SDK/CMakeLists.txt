@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
 find_package(Eigen3 REQUIRED)
-find_package(RBDL REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)

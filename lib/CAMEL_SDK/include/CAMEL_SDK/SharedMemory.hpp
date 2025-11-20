@@ -8,8 +8,6 @@
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include "ENumClasses.hpp"
-#include <heightmaptools/HeightmapTools.hpp>
-#include <heightmapcore/HeightmapCore.hpp>
 
 #define PI          3.141592
 #define R2D         57.2957802

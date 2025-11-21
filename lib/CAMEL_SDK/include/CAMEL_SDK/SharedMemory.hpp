@@ -129,6 +129,7 @@ typedef struct _MIDDLEWARE_DATA_
 
 typedef struct _ROS2_DATA_
 {
+    bool isConnected = false;
     int command = 0;
     int prevCommand = 0;
     bool bNewCommand = false;

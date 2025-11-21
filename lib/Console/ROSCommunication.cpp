@@ -15,6 +15,9 @@ ROSCommunication::ROSCommunication(const rclcpp::NodeOptions& opts)
     timer_canine_states = this->create_wall_timer(
                 std::chrono::milliseconds(20),
                 std::bind(&ROSCommunication::publishStates, this));
+    reset_connect_state = this->create_wall_timer(
+                std::chrono::milliseconds(5000),
+                std::bind(&ROSCommunication::resetStates, this));
 }
 
 void ROSCommunication::publishStates()
@@ -24,6 +27,14 @@ void ROSCommunication::publishStates()
         auto msg = canine_msgs_v2::msg::CANINEState();
         package_canine_state_msg(msg);
         publisher_canine_states->publish(msg);
+    }
+}
+
+void ROSCommunication::resetStates()
+{
+    if (sharedCamel->bIsConnect)
+    {
+        sharedCamel->ros2Data.isConnected = false;
     }
 }
 
@@ -59,6 +70,7 @@ void ROSCommunication::package_canine_state_msg(canine_msgs_v2::msg::CANINEState
 
 void ROSCommunication::topic_callback_canine_command(const canine_msgs_v2::msg::CANINECommand::SharedPtr msg) const
 {
+    sharedCamel->ros2Data.isConnected = true;
     msg->reference_base_velocity.resize(2);
 
     sharedCamel->ros2Data.prevCommand = sharedCamel->ros2Data.command;

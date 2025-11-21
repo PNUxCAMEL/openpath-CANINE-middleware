@@ -22,7 +22,9 @@ public:
   void topic_callback_canine_command(const canine_msgs_v2::msg::CANINECommand::SharedPtr msg) const;
 
 private:
+  void resetStates();
   rclcpp::TimerBase::SharedPtr timer_canine_states;
+  rclcpp::TimerBase::SharedPtr reset_connect_state;
   rclcpp::Publisher<canine_msgs_v2::msg::CANINEState>::SharedPtr publisher_canine_states;
   rclcpp::Subscription<canine_msgs_v2::msg::CANINECommand>::SharedPtr subscription_canine_command;
 

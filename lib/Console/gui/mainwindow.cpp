@@ -14,23 +14,15 @@ MainWindow::MainWindow(QWidget* parent)
 
     // initialization of shared memories
 
-    ui->LB_CAMEL_LOGO->setPixmap(QPixmap(":/CAMEL_logo.png"));
-    // ui->LB_CAMEL_LOGO->setFixedSize(140, 30); // QLabel의 고정 크기 설정
-    ui->LB_CAMEL_LOGO->setScaledContents(true);
-    ui->LB_CAMEL_LOGO->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-
     SetToolBar();
-    setWindowTitle("CAMEL-RBQ10 Console");
+    setWindowTitle("OPR-CANINE-MIDDLEWARE");
     setWindowFlags(Qt::FramelessWindowHint);
-    QMainWindow::setWindowIcon(QIcon(QString(GUI_RSC_DIR) + "COMBINED_IMAGE_RB_ON_CAMEL.png"));
+    QMainWindow::setWindowIcon(QIcon(QString(GUI_RSC_DIR) + "COMBINED_IMAGE_RB_ON_CAMEL.png")); //TODO
     isFullScreenMode = false;
     // Dialog
 
-    ui->LE_CAMEL->setStyleSheet("background-color:red");
-    ui->LE_HARNESS->setStyleSheet("background-color:red");
     ui->LE_GDM_CMD->setStyleSheet("background-color:red");
     ui->LE_CONSOLE_CMD->setStyleSheet("background-color:red");
-    ui->LE_VISION_ROS->setStyleSheet("background-color:red");
 
     lastSelected = J0;
     select_working = false;
@@ -49,7 +41,6 @@ MainWindow::MainWindow(QWidget* parent)
     ui->LE_SIT->setStyleSheet("background-color:red");
     ui->LE_STAND->setStyleSheet("background-color:red");
     ui->LE_WALK->setStyleSheet("background-color:red");
-    ui->LE_RLWALK->setStyleSheet("background-color:red");
     displayTimer = new QTimer();
     connect(displayTimer, SIGNAL(timeout()), this, SLOT(DisplayUpdate()));
     displayTimer->start(100);
@@ -238,15 +229,6 @@ void MainWindow::SetToolBar()
     centralLayout->setContentsMargins(0, 0, 0, 0);
     centralLayout->setAlignment(Qt::AlignCenter);
 
-    QPushButton* emergencyButton = new QPushButton("Emergency");
-    emergencyButton->setFixedSize(200, 40);
-    emergencyButton->setStyleSheet("background-color: red");
-    QFont font = emergencyButton->font();
-    font.setPointSize(14);
-    font.setBold(true);
-    emergencyButton->setFont(font);
-    centralLayout->addWidget(emergencyButton);
-
     ui->mainToolBar->addWidget(centralWidget);
     QWidget* spacer3 = new QWidget();
     spacer3->setFixedWidth(60);
@@ -283,7 +265,6 @@ void MainWindow::SetToolBar()
     ui->mainToolBar->addWidget(buttonContainer);
     connect(minimizeButton, &QPushButton::clicked, [&]() { this->showMinimized(); });
     connect(maximizeButton, &QPushButton::clicked, this, &MainWindow::scaleScreen);
-    connect(emergencyButton, &QPushButton::clicked, this, &MainWindow::EmergencyStop);
     connect(closeButton, &QPushButton::clicked, [this]()
     {
         qApp->quit();
@@ -318,7 +299,7 @@ void MainWindow::on_BTN_GDQ_STAND_clicked()
     sharedCamel->NEWCOMMAND = true;
 }
 
-void MainWindow::EmergencyStop()
+void MainWindow::on_BTN_EMERGENCY_STOP_clicked()
 {
     COMMAND_STRUCT cmd;
     cmd.USER_COMMAND = CMD_CTRL_E_STOP;
@@ -336,14 +317,6 @@ void MainWindow::on_BTN_GDQ_WALK_clicked()
     sharedCamel->NEWCOMMAND = true;
 }
 
-void MainWindow::on_BTN_GDQ_RLWALK_clicked()
-{
-    COMMAND_STRUCT cmd;
-    cmd.USER_COMMAND = CMD_CTRL_RLWALK;
-    cmd.COMMAND_TARGET = CAMEL_CTRL;
-    sharedCamel->COMMAND = cmd;
-    sharedCamel->NEWCOMMAND = true;
-}
 
 void MainWindow::tcpSend()
 {
@@ -374,24 +347,19 @@ void MainWindow::ConnectionStatusDisplay()
     {
         if (!bPrevRobotConnection)
         {
-            ui->LE_CAMEL->setStyleSheet("background-color:lightgreen");
             ui->LE_CONNECT->setStyleSheet("background-color:lightgreen");
             mFSMDisplay = true;
         }
         else
         {
-            ui->LE_CAMEL->setStyleSheet("background-color:red");
             ui->LE_CONNECT->setStyleSheet("background-color:red");
             ui->LE_ROBOT_STATE_2->setText("DISCONNECTED");
             updateStatusIcon(false, bPrevMotorControlStart, actionMotorProtocol);
-            updateStatusLED(false, bPrevROSConnected, ui->LE_VISION_ROS);
-            updateStatusLED(false, bPrevHarnessMode, ui->LE_HARNESS);
             updateStatusLED(false, bPrevConsoleControlled, ui->LE_CONSOLE_CMD);
             updateStatusLED(false, bPrevGDMControlled, ui->LE_GDM_CMD);
             ui->LE_SIT->setStyleSheet("background-color:red");
             ui->LE_STAND->setStyleSheet("background-color:red");
             ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
         }
         bPrevRobotConnection = bRobotConnected;
     }
@@ -399,9 +367,17 @@ void MainWindow::ConnectionStatusDisplay()
     {
         updateStatusIcon(sharedCamel->CAMEL_DATA_NEW.rawData.control_start, bPrevMotorControlStart,
                          actionMotorProtocol);
-        updateStatusLED(sharedCamel->CAMEL_DATA_NEW.isROSConnected, bPrevROSConnected, ui->LE_VISION_ROS);
         updateStatusLED(sharedCamel->CAMEL_DATA_NEW.bConsoleCommand, bPrevConsoleControlled, ui->LE_CONSOLE_CMD);
-        updateStatusLED(sharedCamel->CAMEL_DATA_NEW.bGDMCommand, bPrevGDMControlled, ui->LE_GDM_CMD);
+        // updateStatusLED(sharedCamel->CAMEL_DATA_NEW.bGDMCommand, bPrevGDMControlled, ui->LE_GDM_CMD);
+
+        if (sharedCamel->ros2Data.isConnected)
+        {
+            ui->LE_GDM_CMD->setStyleSheet("background-color:lightgreen");
+        }
+        else
+        {
+            ui->LE_GDM_CMD->setStyleSheet("background-color:red");
+        }
     }
 }
 
@@ -446,7 +422,7 @@ void MainWindow::commandVelDisplay()
 
 void MainWindow::batteryDataDisplay()
 {
-    int batterypercentage = int((sharedCamel->CAMEL_DATA_NEW.rawData.battery_voltage - 44.0) / (58.4 - 44.0) * 100);
+    int batterypercentage = int((sharedCamel->CAMEL_DATA_NEW.rawData.battery_voltage - 42.0) / (52.6 - 42.0) * 100);
     batterypercentage = std::clamp(batterypercentage, 0, 100);
     batteryProgressBar->setValue(batterypercentage);
     batteryProgressBar->setFormat("Robot : " + QString::number(batterypercentage, 'f', 1) + "%");
@@ -471,12 +447,10 @@ void MainWindow::fsmDisplay()
             ui->BTN_GDQ_STAND->setDisabled(true);
             ui->BTN_GDQ_READY->setDisabled(true);
             ui->BTN_GDQ_WALK->setDisabled(true);
-            ui->BTN_GDQ_RLWALK->setDisabled(true);
 
             ui->LE_SIT->setStyleSheet("background-color:red");
             ui->LE_STAND->setStyleSheet("background-color:red");
             ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
             break;
         case FSM_INITIALIZING:
             ui->LE_ROBOT_STATE_2->setText("INITIALIZING...");
@@ -484,12 +458,10 @@ void MainWindow::fsmDisplay()
             ui->BTN_GDQ_STAND->setDisabled(true);
             ui->BTN_GDQ_READY->setDisabled(true);
             ui->BTN_GDQ_WALK->setDisabled(true);
-            ui->BTN_GDQ_RLWALK->setDisabled(true);
 
             ui->LE_SIT->setStyleSheet("background-color:red");
             ui->LE_STAND->setStyleSheet("background-color:red");
             ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
             break;
         case FSM_EMERGENCY_STOP:
             ui->LE_ROBOT_STATE_2->setText("E-STOP");
@@ -497,12 +469,10 @@ void MainWindow::fsmDisplay()
             ui->BTN_GDQ_STAND->setDisabled(true);
             ui->BTN_GDQ_READY->setDisabled(true);
             ui->BTN_GDQ_WALK->setDisabled(true);
-            ui->BTN_GDQ_RLWALK->setDisabled(true);
 
             ui->LE_SIT->setStyleSheet("background-color:red");
             ui->LE_STAND->setStyleSheet("background-color:red");
             ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
             break;
         case FSM_READY:
             ui->LE_ROBOT_STATE_2->setText("READY");
@@ -510,12 +480,10 @@ void MainWindow::fsmDisplay()
             ui->BTN_GDQ_STAND->setEnabled(true);
             ui->BTN_GDQ_READY->setDisabled(true);
             ui->BTN_GDQ_WALK->setDisabled(true);
-            ui->BTN_GDQ_RLWALK->setDisabled(true);
 
             ui->LE_SIT->setStyleSheet("background-color:lightgreen");
             ui->LE_STAND->setStyleSheet("background-color:red");
             ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
             if (sharedCamel->ros2Data.bNewCommand)
             {
                 FILE_LOG(logINFO) << "[ROS2] Received ROS Command : " << sharedCamel->ros2Data.command;
@@ -538,12 +506,10 @@ void MainWindow::fsmDisplay()
             ui->BTN_GDQ_STAND->setDisabled(true);
             ui->BTN_GDQ_READY->setDisabled(true);
             ui->BTN_GDQ_WALK->setDisabled(true);
-            ui->BTN_GDQ_RLWALK->setDisabled(true);
 
             ui->LE_SIT->setStyleSheet("background-color:red");
             ui->LE_STAND->setStyleSheet("background-color:lightgreen");
             ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
             break;
         case FSM_SIT_DOWN:
             ui->LE_ROBOT_STATE_2->setText("SIT-DOWN");
@@ -551,12 +517,10 @@ void MainWindow::fsmDisplay()
             ui->BTN_GDQ_STAND->setDisabled(true);
             ui->BTN_GDQ_READY->setDisabled(true);
             ui->BTN_GDQ_WALK->setDisabled(true);
-            ui->BTN_GDQ_RLWALK->setDisabled(true);
 
             ui->LE_SIT->setStyleSheet("background-color:lightgreen");
             ui->LE_STAND->setStyleSheet("background-color:red");
             ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
             break;
         case FSM_STAND:
             ui->LE_ROBOT_STATE_2->setText("STAND");
@@ -564,12 +528,10 @@ void MainWindow::fsmDisplay()
             ui->BTN_GDQ_STAND->setDisabled(true);
             ui->BTN_GDQ_READY->setEnabled(true);
             ui->BTN_GDQ_WALK->setEnabled(true);
-            ui->BTN_GDQ_RLWALK->setEnabled(true);
 
             ui->LE_SIT->setStyleSheet("background-color:red");
             ui->LE_STAND->setStyleSheet("background-color:lightgreen");
             ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
             break;
         case FSM_TROT_STOP:
             ui->LE_ROBOT_STATE_2->setText("STOPPING");
@@ -577,7 +539,6 @@ void MainWindow::fsmDisplay()
             ui->BTN_GDQ_STAND->setEnabled(true);
             ui->BTN_GDQ_READY->setDisabled(true);
             ui->BTN_GDQ_WALK->setDisabled(true);
-            ui->BTN_GDQ_RLWALK->setDisabled(true);
             break;
         case FSM_WALK:
             ui->LE_ROBOT_STATE_2->setText("WALK");
@@ -585,12 +546,10 @@ void MainWindow::fsmDisplay()
             ui->BTN_GDQ_STAND->setEnabled(true);
             ui->BTN_GDQ_READY->setEnabled(true);
             ui->BTN_GDQ_WALK->setDisabled(true);
-            ui->BTN_GDQ_RLWALK->setEnabled(true);
 
             ui->LE_SIT->setStyleSheet("background-color:red");
             ui->LE_STAND->setStyleSheet("background-color:red");
             ui->LE_WALK->setStyleSheet("background-color:lightgreen");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
             break;
         case FSM_STAIR:
             ui->LE_ROBOT_STATE_2->setText("STAIR");
@@ -598,12 +557,10 @@ void MainWindow::fsmDisplay()
             ui->BTN_GDQ_STAND->setEnabled(true);
             ui->BTN_GDQ_READY->setEnabled(true);
             ui->BTN_GDQ_WALK->setEnabled(true);
-            ui->BTN_GDQ_RLWALK->setEnabled(true);
 
             ui->LE_SIT->setStyleSheet("background-color:red");
             ui->LE_STAND->setStyleSheet("background-color:red");
             ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
             break;
         case FSM_RLWALK:
             ui->LE_ROBOT_STATE_2->setText("RL WALK");
@@ -611,12 +568,10 @@ void MainWindow::fsmDisplay()
             ui->BTN_GDQ_STAND->setEnabled(true);
             ui->BTN_GDQ_READY->setEnabled(true);
             ui->BTN_GDQ_WALK->setEnabled(true);
-            ui->BTN_GDQ_RLWALK->setDisabled(true);
 
             ui->LE_SIT->setStyleSheet("background-color:red");
             ui->LE_STAND->setStyleSheet("background-color:red");
             ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:lightgreen");
             break;
         case FSM_PRONKING:
             ui->LE_ROBOT_STATE_2->setText("PRONKING");
@@ -624,12 +579,10 @@ void MainWindow::fsmDisplay()
             ui->BTN_GDQ_STAND->setEnabled(true);
             ui->BTN_GDQ_READY->setEnabled(true);
             ui->BTN_GDQ_WALK->setEnabled(true);
-            ui->BTN_GDQ_RLWALK->setDisabled(true);
 
             ui->LE_SIT->setStyleSheet("background-color:red");
             ui->LE_STAND->setStyleSheet("background-color:red");
             ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
             break;
         case FSM_BOUNDING:
             ui->LE_ROBOT_STATE_2->setText("BOUNDING");
@@ -637,12 +590,10 @@ void MainWindow::fsmDisplay()
             ui->BTN_GDQ_STAND->setEnabled(true);
             ui->BTN_GDQ_READY->setEnabled(true);
             ui->BTN_GDQ_WALK->setEnabled(true);
-            ui->BTN_GDQ_RLWALK->setDisabled(true);
 
             ui->LE_SIT->setStyleSheet("background-color:red");
             ui->LE_STAND->setStyleSheet("background-color:red");
             ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
             break;
         case FSM_PACING:
             ui->LE_ROBOT_STATE_2->setText("PACING");
@@ -650,12 +601,10 @@ void MainWindow::fsmDisplay()
             ui->BTN_GDQ_STAND->setEnabled(true);
             ui->BTN_GDQ_READY->setEnabled(true);
             ui->BTN_GDQ_WALK->setEnabled(true);
-            ui->BTN_GDQ_RLWALK->setDisabled(true);
 
             ui->LE_SIT->setStyleSheet("background-color:red");
             ui->LE_STAND->setStyleSheet("background-color:red");
             ui->LE_WALK->setStyleSheet("background-color:red");
-            ui->LE_RLWALK->setStyleSheet("background-color:red");
             break;
         case FSM_RECOVERY:
             ui->LE_ROBOT_STATE_2->setText("RECOVERY");

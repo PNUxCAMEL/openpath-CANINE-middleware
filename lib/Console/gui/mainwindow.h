@@ -57,13 +57,12 @@ private Q_SLOTS:
     void ReferenceUpdate();
     void scaleScreen();
     void SetToolBar();
-    void EmergencyStop();
 
+    void on_BTN_EMERGENCY_STOP_clicked();
     void on_BTN_GDQ_START_clicked();
     void on_BTN_GDQ_READY_clicked();
     void on_BTN_GDQ_STAND_clicked();
     void on_BTN_GDQ_WALK_clicked();
-    void on_BTN_GDQ_RLWALK_clicked();
 
 protected:
     void mousePressEvent(QMouseEvent* event) override;

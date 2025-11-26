@@ -43,9 +43,11 @@ void ROSCommunication::package_canine_state_msg(canine_msgs_v2::msg::CANINEState
     msg.local_time = sharedCamel->CAMEL_DATA_NEW.middlewareData.localTime;
     msg.fsm_state = sharedCamel->CAMEL_DATA_NEW.middlewareData.FSMState;
 
+    // TODO: If jh needs odom. topic, we have to change this part
     msg.global_base_position.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition.x();
     msg.global_base_position.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition.y();
     msg.global_base_position.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition.z();
+    //
     msg.global_base_velocity.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity.x();
     msg.global_base_velocity.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity.y();
     msg.global_base_velocity.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity.z();
@@ -66,6 +68,20 @@ void ROSCommunication::package_canine_state_msg(canine_msgs_v2::msg::CANINEState
     msg.body_base_angular_velocity.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity.x();
     msg.body_base_angular_velocity.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity.y();
     msg.body_base_angular_velocity.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity.z();
+
+    msg.odom.twist.twist.linear.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity[0];
+    msg.odom.twist.twist.linear.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity[1];
+    msg.odom.twist.twist.linear.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity[2];
+    msg.odom.twist.twist.angular.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[0];
+    msg.odom.twist.twist.angular.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[1];
+    msg.odom.twist.twist.angular.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[2];
+    msg.odom.pose.pose.position.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[0];
+    msg.odom.pose.pose.position.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[1];
+    msg.odom.pose.pose.position.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[2];
+    msg.odom.pose.pose.orientation.w = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[0];
+    msg.odom.pose.pose.orientation.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[1];
+    msg.odom.pose.pose.orientation.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[2];
+    msg.odom.pose.pose.orientation.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[3];
 }
 
 void ROSCommunication::topic_callback_canine_command(const canine_msgs_v2::msg::CANINECommand::SharedPtr msg) const

@@ -39,32 +39,44 @@ def userCommandThread(args=None):
     shm.cmd.command = Command.WALK.value
     time.sleep(3)
 
-    shm.cmd.reference_base_velocity = [0.1, 0.0]  
+    shm.cmd.reference_base_velocity = [10.0, 0.0]  # float values
     time.sleep(3)
     print(Fore.LIGHTBLUE_EX,time.strftime("%H:%M:%S", time.gmtime(shm.local_time)),"[PY_MAIN] FSM:\t",CanineFSM(shm.fsm_state),Style.RESET_ALL)
     print(Fore.LIGHTBLUE_EX,time.strftime("%H:%M:%S", time.gmtime(shm.local_time)),"[PY_MAIN] body vel:\t",shm.body_base_velocity,Style.RESET_ALL)
     print(Fore.LIGHTBLUE_EX,time.strftime("%H:%M:%S", time.gmtime(shm.local_time)),"[PY_MAIN] base quat:\t",shm.global_base_quaternion,Style.RESET_ALL)
 
     time.sleep(1)
-    shm.cmd.reference_base_velocity = [-0.1, 0.0]  
+    shm.cmd.reference_base_velocity = [-10.0, 0.0]  
     time.sleep(1)
     print(Fore.LIGHTBLUE_EX,time.strftime("%H:%M:%S", time.gmtime(shm.local_time)),"[PY_MAIN] body vel:\t",shm.body_base_velocity,Style.RESET_ALL)
 
     time.sleep(1)
-    shm.cmd.reference_base_velocity = [0.0, 0.1]  
+    shm.cmd.reference_base_velocity = [0.0, 10.0]  
+    time.sleep(1)
+    print(Fore.LIGHTBLUE_EX,time.strftime("%H:%M:%S", time.gmtime(shm.local_time)),"[PY_MAIN] body vel:\t",shm.body_base_velocity,Style.RESET_ALL)
+
+    time.sleep(1)
+    shm.cmd.reference_base_velocity = [0.0, -10.0]  
     time.sleep(1)
     print(Fore.LIGHTBLUE_EX,time.strftime("%H:%M:%S", time.gmtime(shm.local_time)),"[PY_MAIN] body vel:\t",shm.body_base_velocity,Style.RESET_ALL)
 
     time.sleep(1)
     shm.cmd.reference_base_velocity = [0.0, 0.0]  
+    shm.cmd.reference_base_yaw_velocity = 10.0
     time.sleep(1)
     print(Fore.LIGHTBLUE_EX,time.strftime("%H:%M:%S", time.gmtime(shm.local_time)),"[PY_MAIN] body vel:\t",shm.body_base_velocity,Style.RESET_ALL)
 
+    time.sleep(1)
+    shm.cmd.reference_base_velocity = [0.0, 0.0]  
+    shm.cmd.reference_base_yaw_velocity = -10.0
+    time.sleep(1)
+    print(Fore.LIGHTBLUE_EX,time.strftime("%H:%M:%S", time.gmtime(shm.local_time)),"[PY_MAIN] body vel:\t",shm.body_base_velocity,Style.RESET_ALL)
+
+    shm.cmd.reference_base_yaw_velocity = 0.0
     shm.cmd.command = Command.READY.value
     time.sleep(4)
 
-    shm.cmd.command = Command.READY.value
-    time.sleep(5)
+
 
 def pantiltMotorControlThread(args=None):
     pantilt = pantiltManager(shm)

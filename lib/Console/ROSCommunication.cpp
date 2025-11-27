@@ -12,7 +12,8 @@ ROSCommunication::ROSCommunication(const rclcpp::NodeOptions& opts)
     subscription_canine_command = this->create_subscription<canine_msgs_v2::msg::CANINECommand>(
         "canine_command", 10,std::bind(&ROSCommunication::topic_callback_canine_command, this, std::placeholders::_1));
     publisher_canine_states = this->create_publisher<canine_msgs_v2::msg::CANINEState>("canine_states", 10);
-    publisher_canine_odom = this->create_publisher<nav_msgs::msg::Odometry>("canine_odom", 10);
+    // publisher_canine_odom = this->create_publisher<nav_msgs::msg::Odometry>("canine_odom", 10);
+    publisher_canine_odom = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
     publisher_canine_odom_tf = std::make_shared<tf2_ros::TransformBroadcaster>(this);
 
     timer_canine_states = this->create_wall_timer(
@@ -28,6 +29,44 @@ ROSCommunication::ROSCommunication(const rclcpp::NodeOptions& opts)
     timer_canine_command_timeout = this->create_wall_timer(
         std::chrono::milliseconds(100),
         std::bind(&ROSCommunication::checkCommandTimeout, this));
+    publishBasetoLidarTF();
+}
+
+// void ROSCommunication::publishBasetoLidarTF()
+// {
+//     tf2_ros::StaticTransformBroadcaster static_broadcaster(this);
+
+//     // Publish static transform from base_link -> lidar_frame
+//     geometry_msgs::msg::TransformStamped base_to_lidar;
+//     // base_to_lidar.header.frame_id = "base_link";
+//     base_to_lidar.header.frame_id = "base_footprint";
+//     // base_to_lidar.child_frame_id = "laser_frame";
+//     base_to_lidar.child_frame_id = "laser";
+//     base_to_lidar.transform.translation.x = -0.002;
+//     base_to_lidar.transform.translation.y = 0.0;
+//     base_to_lidar.transform.translation.z = 0.177; // Lidar height
+//     base_to_lidar.transform.rotation.x = 0.0;
+//     base_to_lidar.transform.rotation.y = 0.0;
+//     base_to_lidar.transform.rotation.z = 0.0;
+//     base_to_lidar.transform.rotation.w = 1.0;
+//     static_broadcaster.sendTransform(base_to_lidar);
+// }
+
+void ROSCommunication::publishBasetoLidarTF()
+{
+    tf2_ros::StaticTransformBroadcaster static_broadcaster(this);
+
+    geometry_msgs::msg::TransformStamped base_to_lidar;
+    base_to_lidar.header.frame_id = "base_footprint";
+    base_to_lidar.child_frame_id = "laser";
+
+    base_to_lidar.transform.translation.x = -0.002;
+    base_to_lidar.transform.translation.y = 0.0;
+    base_to_lidar.transform.translation.z = 0.177;
+
+    base_to_lidar.transform.rotation.w = 1.0;
+
+    static_broadcaster.sendTransform(base_to_lidar);
 }
 
 void ROSCommunication::publishStates()
@@ -40,65 +79,125 @@ void ROSCommunication::publishStates()
     }
 }
 
+// void ROSCommunication::publishOdom()
+// {
+//     // if (sharedCamel->bIsConnect)
+//     // {
+//         auto msg = nav_msgs::msg::Odometry();
+//         msg.header.stamp = this->now();
+//         // msg.header.frame_id = "canine_odom";
+//         msg.header.frame_id = "odom";
+//         // msg.child_frame_id = "base_link";
+//         msg.child_frame_id = "base_footprint";
+//         msg.twist.twist.linear.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity[0];
+//         msg.twist.twist.linear.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity[1];
+//         msg.twist.twist.linear.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity[2];
+//         msg.twist.twist.angular.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[0];
+//         msg.twist.twist.angular.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[1];
+//         msg.twist.twist.angular.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[2];
+//         msg.pose.pose.position.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[0];
+//         msg.pose.pose.position.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[1];
+//         msg.pose.pose.position.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[2];
+//         // msg.pose.pose.orientation.w = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[0];
+//         // msg.pose.pose.orientation.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[1];
+//         // msg.pose.pose.orientation.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[2];
+//         // msg.pose.pose.orientation.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[3];
+//         msg.pose.pose.orientation.w = 1.0;
+//         msg.pose.pose.orientation.x = 0.0;
+//         msg.pose.pose.orientation.y = 0.0;
+//         msg.pose.pose.orientation.z = 0.0;
+
+//         std::array<double, 36> cov = {
+//             0.02, 0, 0, 0, 0, 0,
+//             0, 0.02, 0, 0, 0, 0,
+//             0, 0, 0.02, 0, 0, 0,
+//             0, 0, 0, 0.02, 0, 0,
+//             0, 0, 0, 0, 0.02, 0,
+//         };
+//         msg.pose.covariance = cov;
+//         publisher_canine_odom->publish(msg);
+//     // }
+// }
+
 void ROSCommunication::publishOdom()
 {
-    if (sharedCamel->bIsConnect)
-    {
-        auto msg = nav_msgs::msg::Odometry();
-        msg.header.stamp = this->now();
-        msg.header.frame_id = "canine_odom";
-        msg.child_frame_id = "base";
-        msg.twist.twist.linear.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity[0];
-        msg.twist.twist.linear.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity[1];
-        msg.twist.twist.linear.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity[2];
-        msg.twist.twist.angular.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[0];
-        msg.twist.twist.angular.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[1];
-        msg.twist.twist.angular.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[2];
-        msg.pose.pose.position.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[0];
-        msg.pose.pose.position.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[1];
-        msg.pose.pose.position.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[2];
-        msg.pose.pose.orientation.w = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[0];
-        msg.pose.pose.orientation.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[1];
-        msg.pose.pose.orientation.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[2];
-        msg.pose.pose.orientation.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[3];
-        std::array<double, 36> cov = {
-            0.02, 0, 0, 0, 0, 0,
-            0, 0.02, 0, 0, 0, 0,
-            0, 0, 0.02, 0, 0, 0,
-            0, 0, 0, 0.02, 0, 0,
-            0, 0, 0, 0, 0.02, 0,
-        };
-        msg.pose.covariance = cov;
-        publisher_canine_odom->publish(msg);
-    }
+    auto msg = nav_msgs::msg::Odometry();
+    msg.header.stamp = this->now();
+    msg.header.frame_id = "odom";      // ODOM FRAME
+    msg.child_frame_id = "base_footprint";       // BASE FRAME
+
+    msg.twist.twist.linear.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity[0];
+    msg.twist.twist.linear.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity[1];
+    msg.twist.twist.linear.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity[2];
+
+    msg.twist.twist.angular.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[0];
+    msg.twist.twist.angular.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[1];
+    msg.twist.twist.angular.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[2];
+
+    msg.pose.pose.position.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[0];
+    msg.pose.pose.position.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[1];
+    msg.pose.pose.position.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[2];
+
+    tf2::Quaternion q;
+    q.setRPY(
+        sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[0],
+        sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[1],
+        sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[2]
+    );
+    msg.pose.pose.orientation = tf2::toMsg(q);
+
+    publisher_canine_odom->publish(msg);
 }
+
+// void ROSCommunication::publishOdomTF()
+// {
+//     // if (sharedCamel->bIsConnect)
+//     // {
+//         double roll = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[0];
+//         double pitch = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[1];
+//         double yaw = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[2];
+//         double x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[0];
+//         double y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[1];
+//         double z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[2];
+
+//         geometry_msgs::msg::TransformStamped tf;
+//         tf.header.stamp = this->now();
+//         // tf.header.frame_id = "canine_odom";
+//         tf.header.frame_id = "odom";
+//         tf.child_frame_id = "base";
+
+//         tf2::Quaternion q1;
+//         q1.setRPY(roll, pitch, yaw);
+
+//         tf.transform.translation.x = x;
+//         tf.transform.translation.y = y;
+//         tf.transform.translation.z = z;
+//         tf.transform.rotation = tf2::toMsg(q1);
+
+//         publisher_canine_odom_tf->sendTransform(tf);
+//     // }
+// }
 
 void ROSCommunication::publishOdomTF()
 {
-    if (sharedCamel->bIsConnect)
-    {
-        double roll = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[0];
-        double pitch = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[1];
-        double yaw = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[2];
-        double x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[0];
-        double y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[1];
-        double z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[2];
+    double roll = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[0];
+    double pitch = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[1];
+    double yaw = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[2];
 
-        geometry_msgs::msg::TransformStamped tf;
-        tf.header.stamp = this->now();
-        tf.header.frame_id = "canine_odom";
-        tf.child_frame_id = "base";
+    geometry_msgs::msg::TransformStamped tf;
+    tf.header.stamp = this->now();
+    tf.header.frame_id = "odom";
+    tf.child_frame_id = "base_footprint";
 
-        tf2::Quaternion q1;
-        q1.setRPY(roll, pitch, yaw);
+    tf.transform.translation.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[0];
+    tf.transform.translation.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[1];
+    tf.transform.translation.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[2];
 
-        tf.transform.translation.x = x;
-        tf.transform.translation.y = y;
-        tf.transform.translation.z = z;
-        tf.transform.rotation = tf2::toMsg(q1);
+    tf2::Quaternion q;
+    q.setRPY(roll, pitch, yaw);
+    tf.transform.rotation = tf2::toMsg(q);
 
-        publisher_canine_odom_tf->sendTransform(tf);
-    }
+    publisher_canine_odom_tf->sendTransform(tf);
 }
 
 void ROSCommunication::resetStates()

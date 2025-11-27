@@ -15,6 +15,10 @@
 #include <canine_msgs_v2/msg/canine_command.hpp>
 #include "SharedMemory.h"
 
+#include "tf2_ros/static_transform_broadcaster.h"
+#include <geometry_msgs/msg/transform_stamped.hpp>
+
+
 class ROSCommunication : public rclcpp::Node
 {
 public:
@@ -28,6 +32,7 @@ public:
 private:
   void resetStates();
   void checkCommandTimeout();
+  void publishBasetoLidarTF();
   rclcpp::TimerBase::SharedPtr timer_canine_states;
   rclcpp::TimerBase::SharedPtr timer_canine_odom;
   rclcpp::TimerBase::SharedPtr timer_canine_odom_tf;

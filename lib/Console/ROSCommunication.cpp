@@ -25,9 +25,9 @@ ROSCommunication::ROSCommunication(const rclcpp::NodeOptions& opts)
                 std::chrono::milliseconds(10),
                 std::bind(&ROSCommunication::publishOdomTF, this));
 
-    reset_connect_state = this->create_wall_timer(
-                std::chrono::milliseconds(5000),
-                std::bind(&ROSCommunication::resetStates, this));
+    timer_canine_command_timeout = this->create_wall_timer(
+        std::chrono::milliseconds(100),
+        std::bind(&ROSCommunication::checkCommandTimeout, this));
 }
 
 void ROSCommunication::publishStates()
@@ -106,6 +106,10 @@ void ROSCommunication::resetStates()
     if (sharedCamel->bIsConnect)
     {
         sharedCamel->ros2Data.isConnected = false;
+        
+        sharedCamel->ros2Data.baseRefVelX = 0.0;
+        sharedCamel->ros2Data.baseRefVelY = 0.0;
+        sharedCamel->ros2Data.baseRefAngVelZ = 0.0;
     }
 }
 
@@ -155,21 +159,47 @@ void ROSCommunication::package_canine_state_msg(canine_msgs_v2::msg::CANINEState
     msg.odom.pose.pose.orientation.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[3];
 }
 
-void ROSCommunication::topic_callback_canine_command(const canine_msgs_v2::msg::CANINECommand::SharedPtr msg) const
+void ROSCommunication::topic_callback_canine_command(const canine_msgs_v2::msg::CANINECommand::SharedPtr msg)
 {
     sharedCamel->ros2Data.isConnected = true;
     msg->reference_base_velocity.resize(2);
+    double ros_ref_vel_x = msg->reference_base_velocity[0];
+    double ros_ref_vel_y = msg->reference_base_velocity[1];
+    double ros_ref_vel_w = msg->reference_base_yaw_velocity;
 
     sharedCamel->ros2Data.prevCommand = sharedCamel->ros2Data.command;
     sharedCamel->ros2Data.command = msg->command;
-    sharedCamel->ros2Data.baseRefVelX = msg->reference_base_velocity[0];
-    sharedCamel->ros2Data.baseRefVelY = msg->reference_base_velocity[1];
-    sharedCamel->ros2Data.baseRefAngVelZ = msg->reference_base_yaw_velocity;
+    sharedCamel->ros2Data.baseRefVelX = std::min(std::max(ros_ref_vel_x, -0.2), 0.5);
+    sharedCamel->ros2Data.baseRefVelY = std::min(std::max(ros_ref_vel_y, -0.1), 0.1);
+    sharedCamel->ros2Data.baseRefAngVelZ = std::min(std::max(ros_ref_vel_w, -0.8), 0.8);
 
     if (sharedCamel->ros2Data.command != sharedCamel->ros2Data.prevCommand)
     {
         sharedCamel->ros2Data.bNewCommand = true;
     }
+
+
+    last_command_time_ = this->now();
+    command_received_once = true;
 }
+
+void ROSCommunication::checkCommandTimeout()
+{
+    if (!command_received_once)
+        return; // 아직 한 번도 메시지 안 왔다면 무시
+
+    rclcpp::Time now = this->now();
+    double elapsed_sec = (now - last_command_time_).seconds();
+
+    if (elapsed_sec > 1.0)  // 1초 이상 미수신
+    {
+        RCLCPP_WARN(this->get_logger(),
+            "No ros_command received for %.2f sec → Reset command.", elapsed_sec);
+
+        resetStates();   // 🔥 네가 이미 구현한 함수 호출
+        command_received_once = false;
+    }
+}
+
 
 

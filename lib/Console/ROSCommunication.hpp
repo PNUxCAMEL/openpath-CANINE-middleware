@@ -23,20 +23,22 @@ public:
   void publishOdom();
   void publishOdomTF();
   void package_canine_state_msg(canine_msgs_v2::msg::CANINEState& msg);
-  void topic_callback_canine_command(const canine_msgs_v2::msg::CANINECommand::SharedPtr msg) const;
+  void topic_callback_canine_command(const canine_msgs_v2::msg::CANINECommand::SharedPtr msg);
 
 private:
   void resetStates();
+  void checkCommandTimeout();
   rclcpp::TimerBase::SharedPtr timer_canine_states;
   rclcpp::TimerBase::SharedPtr timer_canine_odom;
   rclcpp::TimerBase::SharedPtr timer_canine_odom_tf;
-  rclcpp::TimerBase::SharedPtr reset_connect_state;
   rclcpp::Publisher<canine_msgs_v2::msg::CANINEState>::SharedPtr publisher_canine_states;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr publisher_canine_odom;
   std::shared_ptr<tf2_ros::TransformBroadcaster> publisher_canine_odom_tf;
   rclcpp::Subscription<canine_msgs_v2::msg::CANINECommand>::SharedPtr subscription_canine_command;
 
-
+  rclcpp::Time last_command_time_;
+  bool command_received_once = false;
+  rclcpp::TimerBase::SharedPtr timer_canine_command_timeout;
 };
 
 

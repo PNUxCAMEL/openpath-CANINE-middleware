@@ -9,7 +9,7 @@
 #include <Eigen/Core>
 #include "ENumClasses.hpp"
 
-#define PI          3.141592
+#define CAMEL_PI          3.141592
 #define R2D         57.2957802
 #define D2R         0.0174533
 

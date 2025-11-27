@@ -12,9 +12,19 @@ ROSCommunication::ROSCommunication(const rclcpp::NodeOptions& opts)
     subscription_canine_command = this->create_subscription<canine_msgs_v2::msg::CANINECommand>(
         "canine_command", 10,std::bind(&ROSCommunication::topic_callback_canine_command, this, std::placeholders::_1));
     publisher_canine_states = this->create_publisher<canine_msgs_v2::msg::CANINEState>("canine_states", 10);
+    publisher_canine_odom = this->create_publisher<nav_msgs::msg::Odometry>("canine_odom", 10);
+    publisher_canine_odom_tf = std::make_shared<tf2_ros::TransformBroadcaster>(this);
+
     timer_canine_states = this->create_wall_timer(
-                std::chrono::milliseconds(20),
+                std::chrono::milliseconds(10),
                 std::bind(&ROSCommunication::publishStates, this));
+    timer_canine_odom = this->create_wall_timer(
+                std::chrono::milliseconds(10),
+                std::bind(&ROSCommunication::publishOdom, this));
+    timer_canine_odom_tf = this->create_wall_timer(
+                std::chrono::milliseconds(10),
+                std::bind(&ROSCommunication::publishOdomTF, this));
+
     reset_connect_state = this->create_wall_timer(
                 std::chrono::milliseconds(5000),
                 std::bind(&ROSCommunication::resetStates, this));
@@ -27,6 +37,67 @@ void ROSCommunication::publishStates()
         auto msg = canine_msgs_v2::msg::CANINEState();
         package_canine_state_msg(msg);
         publisher_canine_states->publish(msg);
+    }
+}
+
+void ROSCommunication::publishOdom()
+{
+    if (sharedCamel->bIsConnect)
+    {
+        auto msg = nav_msgs::msg::Odometry();
+        msg.header.stamp = this->now();
+        msg.header.frame_id = "canine_odom";
+        msg.child_frame_id = "base";
+        msg.twist.twist.linear.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity[0];
+        msg.twist.twist.linear.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity[1];
+        msg.twist.twist.linear.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.baseVelocity[2];
+        msg.twist.twist.angular.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[0];
+        msg.twist.twist.angular.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[1];
+        msg.twist.twist.angular.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[2];
+        msg.pose.pose.position.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[0];
+        msg.pose.pose.position.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[1];
+        msg.pose.pose.position.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[2];
+        msg.pose.pose.orientation.w = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[0];
+        msg.pose.pose.orientation.x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[1];
+        msg.pose.pose.orientation.y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[2];
+        msg.pose.pose.orientation.z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.quat[3];
+        std::array<double, 36> cov = {
+            0.02, 0, 0, 0, 0, 0,
+            0, 0.02, 0, 0, 0, 0,
+            0, 0, 0.02, 0, 0, 0,
+            0, 0, 0, 0.02, 0, 0,
+            0, 0, 0, 0, 0.02, 0,
+        };
+        msg.pose.covariance = cov;
+        publisher_canine_odom->publish(msg);
+    }
+}
+
+void ROSCommunication::publishOdomTF()
+{
+    if (sharedCamel->bIsConnect)
+    {
+        double roll = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[0];
+        double pitch = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[1];
+        double yaw = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[2];
+        double x = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[0];
+        double y = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[1];
+        double z = sharedCamel->CAMEL_DATA_NEW.middlewareData.global.basePosition[2];
+
+        geometry_msgs::msg::TransformStamped tf;
+        tf.header.stamp = this->now();
+        tf.header.frame_id = "canine_odom";
+        tf.child_frame_id = "base";
+
+        tf2::Quaternion q1;
+        q1.setRPY(roll, pitch, yaw);
+
+        tf.transform.translation.x = x;
+        tf.transform.translation.y = y;
+        tf.transform.translation.z = z;
+        tf.transform.rotation = tf2::toMsg(q1);
+
+        publisher_canine_odom_tf->sendTransform(tf);
     }
 }
 

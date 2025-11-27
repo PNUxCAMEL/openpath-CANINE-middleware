@@ -9,6 +9,8 @@
 #include <chrono>
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/twist.hpp>
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include <canine_msgs_v2/msg/canine_state.hpp>
 #include <canine_msgs_v2/msg/canine_command.hpp>
 #include "SharedMemory.h"
@@ -18,14 +20,20 @@ class ROSCommunication : public rclcpp::Node
 public:
   ROSCommunication(const rclcpp::NodeOptions& opts);
   void publishStates();
+  void publishOdom();
+  void publishOdomTF();
   void package_canine_state_msg(canine_msgs_v2::msg::CANINEState& msg);
   void topic_callback_canine_command(const canine_msgs_v2::msg::CANINECommand::SharedPtr msg) const;
 
 private:
   void resetStates();
   rclcpp::TimerBase::SharedPtr timer_canine_states;
+  rclcpp::TimerBase::SharedPtr timer_canine_odom;
+  rclcpp::TimerBase::SharedPtr timer_canine_odom_tf;
   rclcpp::TimerBase::SharedPtr reset_connect_state;
   rclcpp::Publisher<canine_msgs_v2::msg::CANINEState>::SharedPtr publisher_canine_states;
+  rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr publisher_canine_odom;
+  std::shared_ptr<tf2_ros::TransformBroadcaster> publisher_canine_odom_tf;
   rclcpp::Subscription<canine_msgs_v2::msg::CANINECommand>::SharedPtr subscription_canine_command;
 
 

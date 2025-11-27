@@ -7,6 +7,8 @@ find_package(Eigen3 REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 find_package(canine_msgs_v2 REQUIRED)
 
 # Qt 자동 처리 설정
@@ -89,6 +91,8 @@ ament_target_dependencies(${PROJECT_NAME}
         rclcpp
         geometry_msgs
         canine_msgs_v2
+        tf2_ros
+        tf2_geometry_msgs
 )
 
 ament_package()

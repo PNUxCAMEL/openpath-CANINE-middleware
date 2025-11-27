@@ -202,7 +202,6 @@ void CommunicationClient::markDisconnected(const char* reason)
 
     // 백오프 스케줄
     nextAttemptAt_ = QDateTime::currentDateTime().addMSecs(backoffMs_);
-    backoffMs_ = std::min(backoffMs_ * 2, backoffMaxMs_);
 }
 
 void CommunicationClient::resetBackoffOnSuccess()
@@ -312,7 +311,6 @@ void CommunicationClient::startRacingConnect_()
             stopRacing_("timeout");
             // 레이스 실패 → 백오프 증가
             nextAttemptAt_ = QDateTime::currentDateTime().addMSecs(backoffMs_);
-            backoffMs_ = std::min(backoffMs_ * 2, backoffMaxMs_);
         });
     }
     raceTimer_->start(raceTimeoutMs_);

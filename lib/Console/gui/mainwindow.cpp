@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget* parent)
     SetToolBar();
     setWindowTitle("OPR-CANINE-MIDDLEWARE");
     setWindowFlags(Qt::FramelessWindowHint);
-    QMainWindow::setWindowIcon(QIcon(QString(GUI_RSC_DIR) + "COMBINED_IMAGE_RB_ON_CAMEL.png")); //TODO
+    QMainWindow::setWindowIcon(QIcon(QString(GUI_RSC_DIR) + "OPENPATH_ICON.png")); //TODO
     isFullScreenMode = false;
     // Dialog
 

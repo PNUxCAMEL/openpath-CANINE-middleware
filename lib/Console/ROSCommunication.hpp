@@ -17,7 +17,7 @@
 
 #include "tf2_ros/static_transform_broadcaster.h"
 #include <geometry_msgs/msg/transform_stamped.hpp>
-
+// #include "sensor_msgs/msg/laser_scan.hpp"
 
 class ROSCommunication : public rclcpp::Node
 {
@@ -33,6 +33,7 @@ private:
   void resetStates();
   void checkCommandTimeout();
   void publishBasetoLidarTF();
+  // void publishScan();
   rclcpp::TimerBase::SharedPtr timer_canine_states;
   rclcpp::TimerBase::SharedPtr timer_canine_odom;
   rclcpp::TimerBase::SharedPtr timer_canine_odom_tf;
@@ -40,6 +41,10 @@ private:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr publisher_canine_odom;
   std::shared_ptr<tf2_ros::TransformBroadcaster> publisher_canine_odom_tf;
   rclcpp::Subscription<canine_msgs_v2::msg::CANINECommand>::SharedPtr subscription_canine_command;
+
+  // rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr lidar_pub_;
+  // rclcpp::TimerBase::SharedPtr timer_lidar_scan_;
+  std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
 
   rclcpp::Time last_command_time_;
   bool command_received_once = false;

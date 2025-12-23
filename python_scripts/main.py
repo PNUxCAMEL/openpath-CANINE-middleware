@@ -7,6 +7,7 @@ from pantiltManager import pantiltManager
 from zedManager import zedManager
 from sharedMemory import SharedMemoryManager
 from colorama import Fore, Style
+import math
 
 shm = SharedMemoryManager()
 cam = zedManager(shm)
@@ -80,16 +81,19 @@ def userCommandThread(args=None):
 
 def pantiltMotorControlThread(args=None):
     pantilt = pantiltManager(shm)
+    pantilt.reset_error()
+    local_time = 0
     while True:
         pantilt.read_position()
         print("pantilt_yaw: ",shm.pantilt_position[0])
         print("pantilt_goal_yaw: ",shm.pantilt_goal_position[0])
         print("pantilt_pitch: ",shm.pantilt_position[1])
         print("pantilt_goal_pitch: ",shm.pantilt_goal_position[1])
-        shm.pantilt_goal_position[0] += 1
-        shm.pantilt_goal_position[1] += 1
+        shm.pantilt_goal_position[0] = 45.0 * math.sin(2 * math.pi * 0.5 * local_time)
+        shm.pantilt_goal_position[1] = 30.0 * math.sin(2 * math.pi * 0.5 * local_time)
         pantilt.set_position()
-        time.sleep(0.1)
+        local_time += 0.02
+        time.sleep(0.01) 
 
 cam.get_image() # Save images to shm.left_image[0], shm.right_image[0]
 

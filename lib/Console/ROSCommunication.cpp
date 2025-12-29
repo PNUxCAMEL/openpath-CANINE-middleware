@@ -144,14 +144,14 @@ void ROSCommunication::publishOdom()
     );
     msg.pose.pose.orientation = tf2::toMsg(q);
     publisher_canine_odom->publish(msg);
-    RCLCPP_INFO(this->get_logger(),
-        "twist = (%f, %f, %f), rpy = (%f,%f,%f)",
-        sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[0],
-        sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[1],
-        sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[2],
-        sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[0],
-        sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[1],
-        sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[2]);
+    // RCLCPP_INFO(this->get_logger(),
+    //     "twist = (%f, %f, %f), rpy = (%f,%f,%f)",
+    //     sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[0],
+    //     sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[1],
+    //     sharedCamel->CAMEL_DATA_NEW.middlewareData.body.baseAngularVelocity[2],
+    //     sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[0],
+    //     sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[1],
+    //     sharedCamel->CAMEL_DATA_NEW.middlewareData.global.rpy[2]);
 }
 
 void ROSCommunication::publishOdomTF()
